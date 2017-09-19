@@ -31,9 +31,14 @@ static int demo_probe(struct platform_device *pdev)
 {
     struct resource *res;
     struct demo_driv_priv *priv;
+    int ret;
 
     /* set driver private data */
     priv = (struct demo_driv_priv *)kmalloc(sizeof(*priv), GFP_KERNEL);
+    if (!priv) {
+        printk(KERN_ERR "Unable to get memory.\n");
+        return -ENOMEM;
+    }
     memset(priv, 0, sizeof(*priv));
     platform_set_drvdata(pdev, priv);
     priv->dev = &pdev->dev; 
@@ -42,20 +47,23 @@ static int demo_probe(struct platform_device *pdev)
     res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "demo_mem");
     if (!res) {
         printk(KERN_ERR "Unable to get IO resource.\n");
-        return -ENODEV;
+        ret = -ENODEV;
+        goto err_free;
     }
 
     /* request resource */
     if (!request_mem_region(res->start, resource_size(res), pdev->name)) {
         printk(KERN_ERR "Unable to request memory region.\n");
-        return -EBUSY;
+        ret = -EBUSY;
+        goto err_free;
     }
 
     /* Io mapping */
     priv->base = ioremap(res->start, resource_size(res));
     if (!priv->base) {
         printk(KERN_ERR "Unable to mapping memory.\n");
-        return -ENOMEM;
+        ret = -ENOMEM;
+        goto err_region;
     }
     printk(KERN_INFO "Mapping address %#x\n", priv->base);
 
@@ -63,10 +71,19 @@ static int demo_probe(struct platform_device *pdev)
     priv->irq = platform_get_irq_byname(pdev, "demo_irq");
     if (priv->irq == -ENXIO) {
         printk("Unable get irq information.\n");
-        return -ENXIO;
+        ret = -ENXIO;
+        goto err_io;
     }
     printk("IRQ %d\n", priv->irq);
     return 0;
+err_io:
+    iounmap(priv->base);
+err_region:
+    release_mem_region(res->start, resource_size(res));
+err_free:
+    kfree(priv);
+    return ret;
+
 }
 
 /* remove platform driver */
