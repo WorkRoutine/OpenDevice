@@ -7,9 +7,14 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-
 #include <linux/init.h>
 #include <linux/kernel.h>
+#include <linux/delay.h>
+
+#include <linux/module.h>
+#include <linux/miscdevice.h>
+#include <linux/fs.h>
+#include <asm/uaccess.h>
 
 #include <linux/platform_device.h>
 #include <linux/pinctrl/consumer.h>
@@ -38,18 +43,27 @@ struct demo_base {
     unsigned int mdc_div;
 };
 
+/* Private data define */
 static struct demo_base hwdev;
 static unsigned long tx_delay = 0;
 static unsigned long rx_delay = 0;
+static struct demo_mdio_priv *misc_priv;
+
+/* filesystem private data */
+static unsigned long ioc_phy_id;
+static unsigned long ioc_reg_id;
 
 /* define name for device and driver */
-#define DEV_NAME            "gmac0"
-#define DEMO_CLKBASE        "gmac"
+#define DEV_NAME                "gmac0"
+#define DEMO_CLKBASE            "gmac"
+#define DEV_MISC_NAME           "mdio"
 
 /* Eth base io address */
 #define GETH_BASE               0x01c30000
 #define GETH_MDIO_ADDR          0x48
 #define GETH_MDIO_DATA          0x4C
+#define PHY_REG_SIZE            48
+
 
 #define SYS_CTL_BASE            0x01c00000
 #define GETH_CLK_REG            0x0030
@@ -58,6 +72,16 @@ static unsigned long rx_delay = 0;
 
 #define MII_BUSY                0x00000001
 #define MII_WRITE               0x00000002
+
+/* IOC COMMAND LIST */
+enum DEMO_MDIO_IOCTRL {
+    MDIO_NULL = 0,
+    MDIO_SET_PHY_ID,     /* Set current phy ID. */
+    MDIO_SET_REG_ID,     /* Set current reg ID. */
+    MDIO_GET_PHY_ID,     /* Get current phy ID. */
+    MDIO_GET_REG_ID,     /* Get current reg ID. */
+    MDIO_TOTAL,
+};
 
 /* dumplicate from sunxi */
 int legacy_mdio_read(void *iobase, int phyaddr, int phyreg)
@@ -122,9 +146,137 @@ static void legacy_mdc_clock(void *iobase, int version, unsigned int div)
     hwdev.ver     = version;
     hwdev.iobase  = iobase;
     hwdev.mdc_div = div;
+}
 
+/* Misc interface */
+
+/* read operation */
+static int demo_misc_open(struct inode *inode, struct file *filp)
+{
+    printk("Initialize mdio bus. Startup MDIO bus\n");
+
+    /* insert mido layer. */
+    filp->private_data = misc_priv;
     return 0;
 }
+
+/* release operation */
+static int  demo_misc_release(struct inode *inode, struct file *filp)
+{
+    printk("Release mdio bus and close MDIO bus.\n");
+    
+    /* Clear private data */
+    filp->private_data = NULL;
+    return 0;
+}
+
+/* Ioctl operation */
+static long demo_misc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+    int ret;
+    int ioarg;
+
+    switch (cmd) {
+    /* Set phy id */
+    case MDIO_SET_PHY_ID:
+        ret = __get_user(ioarg, (int *)arg);
+        ioc_phy_id = ioarg;        
+        break;
+    /* Set register id */
+    case MDIO_SET_REG_ID:
+        ret = __get_user(ioarg, (int *)arg);
+        ioc_reg_id = ioarg;
+        break;
+    /* Put phy id */
+    case MDIO_GET_PHY_ID:
+        ioarg = ioc_phy_id;
+        ret = __put_user(ioarg, (int *)arg);
+        break;
+    /* Put register id */
+    case MDIO_GET_REG_ID:
+        ioarg = ioc_reg_id;
+        ret = __put_user(ioarg, (int *)arg);
+        break;
+    default:
+        return -EINVAL;
+    }
+    return ret;
+}
+
+/* read operation */
+static ssize_t demo_misc_read(struct file *filp, char __user *buffer, 
+               size_t count, loff_t *offset)
+{
+    struct demo_mdio_priv *priv = filp->private_data;
+    struct mii_bus *mdio = priv->mdio;
+    char reg;
+    int i;
+
+    if (ioc_phy_id > 32 || ioc_phy_id < 0) {
+        printk(KERN_ERR "BAD phy id.\n");
+        return -EFAULT;
+    }
+
+    reg = mdio->read(mdio, ioc_phy_id, ioc_reg_id);
+
+    /* Check count request */
+    if (count != 1) {
+        printk(KERN_ERR "Only request a byte.\n");
+        return -EFAULT;
+    }
+
+    memset(buffer, 0, count);
+    /* Copy value to userspace */
+    if (copy_to_user(buffer, (void *)&reg, count)) {
+        printk(KERN_ERR "Read error.\n");
+        return -EFAULT;
+    } else 
+        *offset += count;
+    return count;
+}
+
+/* write operation */
+static ssize_t demo_misc_write(struct file *filp, const char __user *buffer,
+               size_t count, loff_t *offset)
+{
+    struct demo_mdio_priv *priv = filp->private_data;
+    struct mii_bus *mdio = priv->mdio;
+    char val;    
+
+    /* only get 2 byte from userspace. */
+    if (copy_from_user(&val, buffer, 1)) {
+        printk(KERN_ERR "Write error.\n");
+        return -EFAULT;
+    
+    }
+
+    if (ioc_phy_id < 0 || ioc_phy_id > 32) {
+        printk(KERN_ERR "BAD PHY ID.\n");
+        return -EFAULT;
+    }
+
+    /* mdio write */
+    mdio->write(mdio, ioc_phy_id, ioc_reg_id, val);
+    *offset += count;
+    return count;
+}
+
+/* file operation */
+static struct file_operations demo_misc_fops = {
+    .owner      = THIS_MODULE,
+    .open       = demo_misc_open,
+    .release    = demo_misc_release,
+    .write      = demo_misc_write,
+    .read       = demo_misc_read,
+    .unlocked_ioctl = demo_misc_ioctl,
+};
+
+/* Misc device information. */
+static struct miscdevice demo_misc = {
+    .minor = MISC_DYNAMIC_MINOR,
+    .name  = DEV_MISC_NAME,
+    .fops  = &demo_misc_fops,
+};
 
 /* Initialize hardware mdio */
 static int mdio_hardware_init(struct platform_device *pdev)
@@ -186,6 +338,7 @@ static int legacy_clk_enable(struct platform_device *pdev)
     return 0;
 }
 
+/* Power on device */
 static int legacy_power_on(struct platform_device *pdev)
 {
     struct demo_mdio_priv *priv = platform_get_drvdata(pdev);
@@ -198,6 +351,7 @@ static int legacy_power_on(struct platform_device *pdev)
     return 0;
 }
 
+/* Request platform resource */
 static int demo_platform_resource_request(struct platform_device *pdev)
 {
     struct demo_mdio_priv *priv = platform_get_drvdata(pdev);
@@ -278,7 +432,6 @@ static int demo_probe(struct platform_device *pdev)
     struct phy_device *phydev = NULL;
     struct resource *res;
     int ret;
-    int reg;
 
     /* Setup mdio private data */
     priv = (struct demo_mdio_priv *)kmalloc(sizeof(*priv), GFP_KERNEL);
@@ -287,7 +440,11 @@ static int demo_probe(struct platform_device *pdev)
     memset(priv, 0, sizeof(*priv));
     platform_set_drvdata(pdev, priv);
     priv->dev = &pdev->dev;
-    strcpy(priv->name, "USAB");
+    strcpy(priv->name, "AuperaStor");
+
+    /* Misc interface */
+    misc_priv = priv;
+    misc_register(&demo_misc);
 
     /* request resource */
     ret = demo_platform_resource_request(pdev); 
