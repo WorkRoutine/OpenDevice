@@ -26,6 +26,11 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     Create different size value in hex on debugfs dirent, we can use 
     `echo` or `cat` to read or write this value on device driver.
 
+  * Debugfs_bool.c
+
+    Create bool or size_t value on debugfs dirent, we can directly `echo` or
+    `cat` bool or size_t value.
+
 ## Core function
 
   * debugfs_create_dir
@@ -55,6 +60,16 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     to a value in hex on device driver. we can dirently to utilize `echo` or
     `cat` to read and write this value. On this function family, x contains
     `8,16,32,64`
+
+  * debugfs_create_bool
+
+    This function will create a boolean value on debugfs dirent, we can get
+    `Y` or `N` from this value.
+
+  * debugfs_create_size_t
+
+    This function will create a size_t value on debugfs dirent, more see
+    debugfs_create_ux.
 
 ## More information
 
