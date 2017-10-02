@@ -26,6 +26,10 @@ any specialized system calls.
     Base on procfs, which utilize `proc_mkdir` to create procfs root
     and `remove_proc_entry` to remove dirent from `/proc`.
 
+  * Procfs_subdir.c
+
+    Build different sub-dirent, contain same layer and sub-layer.
+
 ## Core function
 
   * proc_mkdir
