@@ -10,20 +10,27 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     Base on debugfs, which utilize `debugfs_create_dir` to create debugfs root
     and `debugfs_create_file` to create file node on debugfs.
 
+  * Debugfs_subdir.c
+
+    Create mulit subdir on root dirent or sub-dirent. utilize 
+    `debugfs_create_dir` and pass dirent into this function. It will create
+    a subdir on `/sys/kernel/debug/xxx/subdir`.
+
 ## Core function
 
   * debugfs_create_dir
 
-  This function will create a dirent on `/sys/kernel/debug/`. When invoked, it
-  will return a `struct dentry`, this struction hold the dirent information,
-  program will set it as root dirent for debugfs. On the tree, we can create
-  more file under root dirent.
+    This function will create a dirent on `/sys/kernel/debug/`. When invoked, it
+    will return a `struct dentry`, this struction hold the dirent information,
+    program will set it as root dirent for debugfs. On the tree, we can create
+    more file under root dirent.
 
   * debugfs_create_file
 
-  This function will create a file on debugfs dirent, so we shuold pass debugfs
-  dirent,file opermission and file operations into function. On file operation,
-  we can offer more file operations contains `read`, `write` and so on.
+    This function will create a file on debugfs dirent, so we shuold pass 
+    debugfs dirent,file opermission and file operations into function. On 
+    file operation, we can offer more file operations contains `read`, `write` 
+    and so on.
 
 ## More information
 
