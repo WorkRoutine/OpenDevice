@@ -16,6 +16,11 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     `debugfs_create_dir` and pass dirent into this function. It will create
     a subdir on `/sys/kernel/debug/xxx/subdir`.
 
+  * Debugfs_uvalue.c
+
+    Create different size value on debugfs dirent, we can use `echo` or 
+    `cat` to read and write this value on device driver.
+
 ## Core function
 
   * debugfs_create_dir
