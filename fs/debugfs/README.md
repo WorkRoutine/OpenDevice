@@ -21,6 +21,11 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     Create different size value on debugfs dirent, we can use `echo` or 
     `cat` to read and write this value on device driver.
 
+  * Debugfs_xvalue.c
+
+    Create different size value in hex on debugfs dirent, we can use 
+    `echo` or `cat` to read or write this value on device driver.
+
 ## Core function
 
   * debugfs_create_dir
@@ -36,6 +41,20 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     debugfs dirent,file opermission and file operations into function. On 
     file operation, we can offer more file operations contains `read`, `write` 
     and so on.
+
+  * debugfs_create_ux
+
+    This function will create a file on debugfs dirent, this file will link
+    to a value on device driver. we can directly to utilize `echo` or `cat`
+    to read and write this vlaue. On this function family, x contains 
+    `8,16,32,64`.
+
+  * debugfs_create_xx
+
+    This function will create a file on debugfs dirent, this file will link
+    to a value in hex on device driver. we can dirently to utilize `echo` or
+    `cat` to read and write this value. On this function family, x contains
+    `8,16,32,64`
 
 ## More information
 
