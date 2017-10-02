@@ -30,6 +30,10 @@ any specialized system calls.
 
     Build different sub-dirent, contain same layer and sub-layer.
 
+  * Procfs_file.c
+
+    Create proc file on specify proc dirent. Utilize base file operations.  
+
 ## Core function
 
   * proc_mkdir
@@ -41,6 +45,12 @@ any specialized system calls.
 
     This function will remove a dirent from specify proc dirent. More 
     information see `base.c`
+
+  * proc_create
+
+    This function will create a file node on specify proc dirent. It 
+    need a file operations and permission to create file. More information
+    see `Procfs_file.c`
 
 ## More information
 
