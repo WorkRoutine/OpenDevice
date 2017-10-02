@@ -31,6 +31,11 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     Create bool or size_t value on debugfs dirent, we can directly `echo` or
     `cat` bool or size_t value.
 
+  * Debugfs_array.c
+
+    Create array on debugfs dirent, we can directly access array with `echo`
+    or `cat`.
+
 ## Core function
 
   * debugfs_create_dir
@@ -38,7 +43,7 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     This function will create a dirent on `/sys/kernel/debug/`. When invoked, it
     will return a `struct dentry`, this struction hold the dirent information,
     program will set it as root dirent for debugfs. On the tree, we can create
-    more file under root dirent.
+    more file under root dirent. More information see `base.c`
 
   * debugfs_create_file
 
@@ -52,24 +57,29 @@ debugfs is a special file system available in the Linux kernel since version 2.6
     This function will create a file on debugfs dirent, this file will link
     to a value on device driver. we can directly to utilize `echo` or `cat`
     to read and write this vlaue. On this function family, x contains 
-    `8,16,32,64`.
+    `8,16,32,64`. More information see `Debugfs_uvalue.c`
 
   * debugfs_create_xx
 
     This function will create a file on debugfs dirent, this file will link
     to a value in hex on device driver. we can dirently to utilize `echo` or
     `cat` to read and write this value. On this function family, x contains
-    `8,16,32,64`
+    `8,16,32,64`. More information see `Debugfs_xvalue.c`
 
   * debugfs_create_bool
 
     This function will create a boolean value on debugfs dirent, we can get
-    `Y` or `N` from this value.
+    `Y` or `N` from this value. More information see `Debugfs_bool.c`
 
   * debugfs_create_size_t
 
     This function will create a size_t value on debugfs dirent, more see
-    debugfs_create_ux.
+    debugfs_create_ux. More information see `Debugfs_bool.c`
+
+  * debugfs_create_blob
+
+    This function allow userspace access array on debugfs. More information
+    see `Debugfs_array.c`
 
 ## More information
 
