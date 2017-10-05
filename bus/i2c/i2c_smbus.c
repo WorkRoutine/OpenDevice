@@ -44,6 +44,8 @@ static int demo_probe(struct i2c_client *client,
     struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
     struct demo_data *priv;
     u8 flags;
+    u8 *value;
+    u8 length;
     int ret;
 
     /* I2C adapter function check */
@@ -64,16 +66,39 @@ static int demo_probe(struct i2c_client *client,
     /* link i2c client */
     i2c_set_clientdata(client, priv);
 
-    /* SMBUS read */
+    /* SMBUS read a byte */
     flags = i2c_smbus_read_byte_data(client, REG_BASE + 0x00);
-    /* SMBUS write */
+    /* SMBUS write a byte */
     ret = i2c_smbus_write_byte_data(client, REG_BASE + 0x00, 0xD8);
     if (ret < 0) {
         printk(KERN_ERR "Unable to write data.\n");
         return ret;
     }
 
+    /* SMBUS read number of bytes */
+    length = 20;
+    value = (u8 *)kmalloc(sizeof(u8) * length, GFP_KERNEL);
+    if (!value) {
+        printk(KERN_ERR "Unable allocate memory to value.\n");
+        return -ENOMEM;
+    }
+    ret = i2c_smbus_read_i2c_block_data(client, REG_BASE + 0x00, length, value);
+    if (ret != length) {
+        printk(KERN_ERR "Unable to read block data with SMBUS.\n");
+        return -EIO;
+    }
 
+    /* SMBUS write number of bytes */
+    value[0] = 0x01;
+    value[5] = 0x02;
+    value[8] = 0x07;
+    ret = i2c_smbus_write_i2c_block_data(client, REG_BASE + 0x00, length, value);
+    if (ret != length) {
+        printk(KERN_ERR "Unable to write block data with SMBUS.\n");
+        return -EIO;
+    }
+
+    kfree(value);
     printk(KERN_INFO "i2c demo probe.\n");
     return 0;
 }

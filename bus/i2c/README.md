@@ -54,5 +54,13 @@ some policies and rules from SMBus, sometimes supporting both I²C and SMBus, re
 
     SMBUS write a byte into I2C Bus. More information see i2c_msbus.c
 
+  * i2c_smbus_read_i2c_block_data
+
+    SMBUS read number of bytes from I2C Bus.
+
+  * i2c_smbus_write_i2c_block_data
+
+    SMBUS write number of bytes to I2C Bus.
+
 ## External linker
 
