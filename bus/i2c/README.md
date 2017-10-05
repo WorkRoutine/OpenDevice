@@ -19,6 +19,10 @@ some policies and rules from SMBus, sometimes supporting both I²C and SMBus, re
     Basic routine of i2c device for registering. It will create device on I2C bus, and match a 
     i2c driver to probe.
 
+  * i2c_msbus.c
+
+    Basic i2c write and read with smbus interface.
+
 ## Core Function
 
   * i2c_get_adapter
@@ -41,6 +45,14 @@ some policies and rules from SMBus, sometimes supporting both I²C and SMBus, re
   * i2c_del_driver
 
     Unregister a i2c driver from i2c sub-system. 
+
+  * i2c_smbus_read_byte_data
+
+    SMBUS read a byte in I2C Bus. More information see i2c_msbus.c
+
+  * i2c_smbus_write_byte_data
+
+    SMBUS write a byte into I2C Bus. More information see i2c_msbus.c
 
 ## External linker
 
