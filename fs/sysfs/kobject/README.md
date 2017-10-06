@@ -9,6 +9,9 @@ Kobject
 
     Basic function to create a dentry on `/sys`.
 
+  * kobject_multi_subdir.c
+
+    Build multi dentry on root or sub dirent.
 
 ## Core function
 
