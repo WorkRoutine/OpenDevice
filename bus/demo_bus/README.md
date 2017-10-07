@@ -3,13 +3,18 @@ Demo bus
 
 The common templet for register a new virtual bus into system.
 
-## Filr/Dirent list
+## File/Dirent list
 
   * base/
 
-    This basic routine to register a new virtual bus into system. It offer
+    This is basic routine to register a new virtual bus into system. It offer
     basic device function to register a new device into bus or to unregister
     a device from bus.
+
+  * bus_driver
+
+    This is basic routine to register a new driver into bus or unregister
+    a driver from bus.
 
 ## Core function
 
