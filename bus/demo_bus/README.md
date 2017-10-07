@@ -11,10 +11,14 @@ The common templet for register a new virtual bus into system.
     basic device function to register a new device into bus or to unregister
     a device from bus.
 
-  * bus_driver
+  * bus_driver/
 
     This is basic routine to register a new driver into bus or unregister
     a driver from bus.
+
+  * bus_resource/
+
+    This is basic routine to get resource from bus device.
 
 ## Core function
 
