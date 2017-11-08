@@ -1,7 +1,7 @@
 CAN: Controller Area Network
 ------------------------------------------------------------
 
-![can timing](https://github.com/EmulateSpace/PictureSet/blob/master/github/cantimg.jpeg)
+![can timing](https://github.com/EmulateSpace/PictureSet/blob/master/can/cantimg.jpeg)
 
 A Controller Area Network (CAN bus) is a robust vehicle bus standard designed to allow 
 microcontrollers and devices to communicate with each other in applications without a host 
