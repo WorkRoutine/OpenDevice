@@ -86,7 +86,6 @@ wiring within automobiles to save on copper, but is also used in many other cont
   ```
     ip link set canX type can restart-ms 100
     ip link set canX up type can bitrate 125000
-    
   ``` 
 
   Now, the CAN bus is up and ready, you can running your program to transfer 
