@@ -75,6 +75,7 @@ static int demo_probe(struct platform_device *pdev)
         goto err_io;
     }
     printk("IRQ %d\n", priv->irq);
+
     return 0;
 err_io:
     iounmap(priv->base);
@@ -105,7 +106,7 @@ static int demo_remove(struct platform_device *pdev)
 
 /* platform resource */
 static struct resource demo_resources[] = {
-    {
+     {
         .name  = "demo_irq",
         .start = 84,  /* PL7 -- EINT7 */
         .end   = 84,
